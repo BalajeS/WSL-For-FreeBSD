@@ -332,7 +332,79 @@ void WslCoreVm::Initialize(const GUID& VmId, const wil::shared_handle& UserToken
 
     // Create the utility VM and store the runtime ID.
     std::wstring json = GenerateConfigJson();
-    m_system = wsl::windows::common::hcs::CreateComputeSystem(m_machineId.c_str(), json.c_str());
+
+    //Added by Balaje
+
+    constexpr auto c_VmConfiguration =
+        LR"CONFIG(
+        {
+  "Owner": "WSL",
+  "SchemaVersion": {
+    "Major": 2,
+    "Minor": 3
+  },
+  "ShouldTerminateOnLastHandleClosed": true,
+  "VirtualMachine": {
+    "Chipset": {
+      "Uefi": {
+        "BootThis": {
+          "DevicePath": "Primary disk",
+          "DiskNumber": 0,
+          "DeviceType": "ScsiDrive"
+        }
+      }
+    },
+    "ComputeTopology": {
+      "Memory": {
+        "AllowOvercommit": true,
+        "BackingPageSize": "Small",
+        "DirectMapFaultClusterSizeShift": 4,
+        "EnableColdDiscardHint": true,
+        "EnableDeferredCommit": true,
+        "FaultClusterSizeShift": 4,
+        "HighMmioBaseInMB": 40958,
+        "HighMmioGapInMB": 24578,
+        "SizeInMB": 3360
+      },
+      "Processor": {
+        "Count": 2,
+        "EnablePerfmonLbr": false,
+        "EnablePerfmonPmu": false
+      }
+    },
+    "Devices": {
+      "Battery": {},
+      "ComPorts": {
+         "0": {
+            
+            
+            "NamedPipe" : "\\\\.\\pipe\\wsl_com_customportnamedpipe"
+        }
+            
+        },
+      "HvSocket": {
+        "HvSocketConfig": {
+          "DefaultBindSecurityDescriptor": "D:P(A;;FA;;;SY)(A;;FA;;;S-1-5-21-1179595859-3502412455-849516828-1001)",
+          "DefaultConnectSecurityDescriptor": "D:P(A;;FA;;;SY)(A;;FA;;;S-1-5-21-1179595859-3502412455-849516828-1001)"
+    }
+},
+"Plan9": {},
+"Scsi" : {
+    "Primary disk": {
+        "Attachments": {
+            "0": {
+                "Type": "VirtualDisk",
+                "Path" : "C:\\dev\\vhdx\\FreeBSD14.3-ForWSL.vhdx"
+            }
+        }
+    }
+}
+    },
+    "StopOnReset": true
+  }
+})CONFIG";
+   // m_system = wsl::windows::common::hcs::CreateComputeSystem(m_machineId.c_str(), json.c_str());
+        m_system = wsl::windows::common::hcs::CreateComputeSystem(m_machineId.c_str(), c_VmConfiguration);
     m_runtimeId = wsl::windows::common::hcs::GetRuntimeId(m_system.get());
     WI_ASSERT(IsEqualGUID(VmId, m_runtimeId));
 
