@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Balaje Sankar */
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/poll.h>
